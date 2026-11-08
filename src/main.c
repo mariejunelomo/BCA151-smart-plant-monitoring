@@ -47,6 +47,18 @@ static void sensor_task(void *pvParameters)
     }
 }
 
+// Classify soil moisture using temporary ADC thresholds
+static const char *get_moisture_status(int adc_value)
+{
+    if (adc_value > 3000) {
+        return "DRY";
+    } else if (adc_value >= 1500) {
+        return "NORMAL";
+    } else {
+        return "WET";
+    }
+}
+
 // Monitoring Task
 static void monitoring_task(void *pvParameters)
 {
@@ -61,11 +73,12 @@ static void monitoring_task(void *pvParameters)
             portMAX_DELAY
         ) == pdTRUE) {
 
-            ESP_LOGI(
-                TAG,
-                "Soil moisture ADC value: %d",
-                received_data.soil_moisture
-            );
+        ESP_LOGI(
+            TAG,
+            "Soil moisture ADC: %d | Status: %s",
+            received_data.soil_moisture,
+            get_moisture_status(received_data.soil_moisture)
+          );
         }
     }
 }
