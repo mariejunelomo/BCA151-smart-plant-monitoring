@@ -1,9 +1,11 @@
 
 #include <stdio.h>
+#include <string.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
+#include "freertos/event_groups.h"
 
 #include "esp_log.h"
 #include "esp_err.h"
@@ -13,15 +15,17 @@ static const char *TAG = "plant";
 
 #define POT_ADC_CHANNEL ADC_CHANNEL_3
 #define SENSOR_INTERVAL_MS 1000
+#define SOIL_DRY_BIT BIT0
 
 // Structure for sensor readings
 typedef struct {
     int soil_moisture;
 } sensor_data_t;
 
-// Shared ADC handle and queue
+// Shared ADC handle, queue, and Event Group
 static adc_oneshot_unit_handle_t adc_handle;
 static QueueHandle_t sensor_queue;
+static EventGroupHandle_t plant_event_group;
 
 // Sensor Task
 static void sensor_task(void *pvParameters)
@@ -73,12 +77,28 @@ static void monitoring_task(void *pvParameters)
             portMAX_DELAY
         ) == pdTRUE) {
 
-        ESP_LOGI(
-            TAG,
-            "Soil moisture ADC: %d | Status: %s",
-            received_data.soil_moisture,
-            get_moisture_status(received_data.soil_moisture)
-          );
+            const char *status =
+                get_moisture_status(received_data.soil_moisture);
+
+            ESP_LOGI(
+                TAG,
+                "Soil moisture ADC: %d | Status: %s",
+                received_data.soil_moisture,
+                status
+            );
+
+            // Signal when soil is DRY
+            if (strcmp(status, "DRY") == 0) {
+                xEventGroupSetBits(
+                    plant_event_group,
+                    SOIL_DRY_BIT
+                );
+            } else {
+                xEventGroupClearBits(
+                    plant_event_group,
+                    SOIL_DRY_BIT
+                );
+            }
         }
     }
 }
@@ -112,6 +132,14 @@ void app_main(void)
 
     if (sensor_queue == NULL) {
         ESP_LOGE(TAG, "Failed to create sensor queue");
+        return;
+    }
+
+    // Create Event Group
+    plant_event_group = xEventGroupCreate();
+
+    if (plant_event_group == NULL) {
+        ESP_LOGE(TAG, "Failed to create Event Group");
         return;
     }
 
