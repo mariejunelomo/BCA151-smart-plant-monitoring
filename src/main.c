@@ -1,6 +1,5 @@
 
 #include <stdio.h>
-#include <string.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -15,7 +14,9 @@ static const char *TAG = "plant";
 
 #define POT_ADC_CHANNEL ADC_CHANNEL_3
 #define SENSOR_INTERVAL_MS 1000
+
 #define SOIL_DRY_BIT BIT0
+#define SOIL_NOT_DRY_BIT BIT1
 
 // Structure for sensor readings
 typedef struct {
@@ -87,19 +88,62 @@ static void monitoring_task(void *pvParameters)
                 status
             );
 
-            // Signal when soil is DRY
-            if (strcmp(status, "DRY") == 0) {
+            // Update Event Group based on soil condition
+            if (received_data.soil_moisture > 3000) {
                 xEventGroupSetBits(
                     plant_event_group,
                     SOIL_DRY_BIT
+                );
+
+                xEventGroupClearBits(
+                    plant_event_group,
+                    SOIL_NOT_DRY_BIT
                 );
             } else {
                 xEventGroupClearBits(
                     plant_event_group,
                     SOIL_DRY_BIT
                 );
+
+                xEventGroupSetBits(
+                    plant_event_group,
+                    SOIL_NOT_DRY_BIT
+                );
             }
         }
+    }
+}
+
+// Notification Task
+static void notification_task(void *pvParameters)
+{
+    ESP_LOGI(TAG, "Notification task started");
+
+    while (1) {
+        // Wait until the soil becomes DRY
+        xEventGroupWaitBits(
+            plant_event_group,
+            SOIL_DRY_BIT,
+            pdFALSE,
+            pdTRUE,
+            portMAX_DELAY
+        );
+
+        ESP_LOGW(
+            TAG,
+            "ALERT: Soil is DRY! Water your plant."
+        );
+
+        // Wait until the soil is no longer DRY
+        xEventGroupWaitBits(
+            plant_event_group,
+            SOIL_NOT_DRY_BIT,
+            pdTRUE,
+            pdTRUE,
+            portMAX_DELAY
+        );
+
+        ESP_LOGI(TAG, "Soil condition is no longer DRY.");
     }
 }
 
@@ -156,6 +200,15 @@ void app_main(void)
     xTaskCreate(
         monitoring_task,
         "monitoring_task",
+        4096,
+        NULL,
+        5,
+        NULL
+    );
+
+    xTaskCreate(
+        notification_task,
+        "notification_task",
         4096,
         NULL,
         5,
