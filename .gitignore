@@ -14,3 +14,6 @@
 
 # Build outputs
 build/
+
+# Wi-Fi credentials
+include/wifi_credentials.h
