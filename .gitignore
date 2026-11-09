@@ -17,3 +17,6 @@ build/
 
 # Wi-Fi credentials
 include/wifi_credentials.h
+
+# Telegram credentials
+include/telegram_credentials.h
