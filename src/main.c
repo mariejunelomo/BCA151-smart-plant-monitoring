@@ -34,7 +34,6 @@ static QueueHandle_t sensor_queue;
 static EventGroupHandle_t plant_event_group;
 
 static int wifi_retry_count = 0;
-#define WIFI_MAX_RETRY 5
 
 static void wifi_event_handler(
     void *arg,
@@ -57,23 +56,15 @@ static void wifi_event_handler(
             WIFI_CONNECTED_BIT
         );
 
-        if (wifi_retry_count < WIFI_MAX_RETRY) {
-            wifi_retry_count++;
+        wifi_retry_count++;
 
-            ESP_LOGW(
-                TAG,
-                "Wi-Fi disconnected. Retry %d/%d",
-                wifi_retry_count,
-                WIFI_MAX_RETRY
-            );
+        ESP_LOGW(
+            TAG,
+            "Wi-Fi disconnected. Reconnecting (attempt %d)...",
+            wifi_retry_count
+        );
 
-            esp_wifi_connect();
-        } else {
-            ESP_LOGE(
-                TAG,
-                "Wi-Fi connection failed after maximum retries."
-            );
-        }
+        esp_wifi_connect();
 
     } else if (event_base == IP_EVENT &&
                event_id == IP_EVENT_STA_GOT_IP) {
