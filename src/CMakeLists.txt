@@ -1,4 +1,3 @@
-
 idf_component_register(
     SRCS "main.c"
     INCLUDE_DIRS "." "../include"
@@ -8,4 +7,6 @@ idf_component_register(
         esp_netif
         nvs_flash
         esp_adc
+        esp_http_client
+        mbedtls
 )
