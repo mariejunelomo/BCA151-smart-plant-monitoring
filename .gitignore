@@ -20,3 +20,6 @@ include/wifi_credentials.h
 
 # Telegram credentials
 include/telegram_credentials.h
+
+# Gmail credentials
+include/gmail_credentials.h

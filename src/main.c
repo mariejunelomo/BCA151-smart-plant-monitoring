@@ -1,5 +1,11 @@
+
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <errno.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -16,8 +22,12 @@
 #include "esp_netif.h"
 #include "esp_http_client.h"
 #include "esp_crt_bundle.h"
+#include "esp_tls.h"
+#include "mbedtls/base64.h"
 
 #include "telegram_credentials.h"
+#include "gmail_credentials.h"
+#include "gmail_root_ca.h"
 #include "wifi_credentials.h"
 
 static const char *TAG = "plant";
@@ -194,6 +204,292 @@ static void send_telegram_message(const char *message)
     }
 
     esp_http_client_cleanup(client);
+}
+
+// ==================== GMAIL SMTP FUNCTIONS ====================
+
+#define SMTP_HOST "smtp.gmail.com"
+#define SMTP_PORT 465
+
+static int smtp_write_all(esp_tls_t *tls, const char *data)
+{
+    size_t length = strlen(data);
+    size_t sent = 0;
+
+    while (sent < length) {
+        ssize_t result = esp_tls_conn_write(
+            tls, data + sent, length - sent
+        );
+
+        if (result <= 0) {
+            ESP_LOGE(TAG, "SMTP write failed");
+            return -1;
+        }
+
+        sent += result;
+    }
+
+    return 0;
+}
+
+static int smtp_read_response(esp_tls_t *tls)
+{
+    char line[256];
+    size_t position = 0;
+    int response_code = -1;
+
+    while (1) {
+        char character;
+        ssize_t result = esp_tls_conn_read(tls, &character, 1);
+
+        if (result <= 0) {
+            ESP_LOGE(TAG, "SMTP response read failed");
+            return -1;
+        }
+
+        if (character == '\n') {
+            line[position] = '\0';
+
+            ESP_LOGI(TAG, "SMTP: %s", line);
+
+            if (position >= 3) {
+                if (response_code == -1) {
+                    response_code = atoi(line);
+                }
+
+                // A space after the response code means
+                // this is the final line of the response.
+                if (position < 4 || line[3] == ' ') {
+                    return response_code;
+                }
+            }
+
+            position = 0;
+        } else if (character != '\r') {
+            if (position < sizeof(line) - 1) {
+                line[position++] = character;
+            } else {
+                ESP_LOGE(TAG, "SMTP response line too long");
+                return -1;
+            }
+        }
+    }
+}
+
+static int smtp_command(
+    esp_tls_t *tls,
+    const char *command,
+    int expected_code
+)
+{
+    char buffer[512];
+
+    int length = snprintf(
+        buffer,
+        sizeof(buffer),
+        "%s\r\n",
+        command
+    );
+
+    if (length < 0 || length >= sizeof(buffer)) {
+        ESP_LOGE(TAG, "SMTP command too long");
+        return -1;
+    }
+
+    if (smtp_write_all(tls, buffer) != 0) {
+        return -1;
+    }
+
+    int response = smtp_read_response(tls);
+
+    if (response != expected_code) {
+        ESP_LOGE(
+            TAG,
+            "SMTP unexpected response: %d (expected %d)",
+            response,
+            expected_code
+        );
+        return -1;
+    }
+
+    return 0;
+}
+
+static int smtp_send_base64(
+    esp_tls_t *tls,
+    const char *input
+)
+{
+    unsigned char encoded[512];
+    size_t encoded_length = 0;
+
+    int result = mbedtls_base64_encode(
+        encoded,
+        sizeof(encoded) - 1,
+        &encoded_length,
+        (const unsigned char *)input,
+        strlen(input)
+    );
+
+    if (result != 0) {
+        ESP_LOGE(TAG, "Base64 encoding failed: %d", result);
+        return -1;
+    }
+
+    encoded[encoded_length] = '\0';
+
+    if (smtp_write_all(tls, (const char *)encoded) != 0) {
+        return -1;
+    }
+
+    if (smtp_write_all(tls, "\r\n") != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+static bool send_gmail_notification(const char *message)
+{
+    ESP_LOGI(TAG, "Connecting to Gmail SMTP...");
+
+    esp_tls_t *tls = esp_tls_init();
+
+    if (tls == NULL) {
+        ESP_LOGE(TAG, "Could not initialize ESP-TLS");
+        return false;
+    }
+
+     esp_tls_cfg_t config = {
+        .cacert_buf = (const unsigned char *)GMAIL_ROOT_CA_PEM,
+        .cacert_bytes = sizeof(GMAIL_ROOT_CA_PEM),
+        .timeout_ms = 15000
+    };
+
+    int connected = esp_tls_conn_new_sync(
+        SMTP_HOST,
+        strlen(SMTP_HOST),
+        SMTP_PORT,
+        &config,
+        tls
+    );
+
+    if (connected != 1) {
+        ESP_LOGE(TAG, "Gmail TLS connection failed");
+        esp_tls_conn_destroy(tls);
+        return false;
+    }
+
+    bool success = false;
+
+    // Gmail greeting
+    if (smtp_read_response(tls) != 220) {
+        ESP_LOGE(TAG, "Gmail greeting failed");
+        goto cleanup;
+    }
+
+    // Identify the ESP32
+    if (smtp_command(tls, "EHLO esp32.local", 250) != 0) {
+        goto cleanup;
+    }
+
+    // Begin authentication
+    if (smtp_command(tls, "AUTH LOGIN", 334) != 0) {
+        goto cleanup;
+    }
+
+    // Send Gmail address
+    if (smtp_send_base64(tls, GMAIL_SENDER_EMAIL) != 0) {
+        goto cleanup;
+    }
+
+    if (smtp_read_response(tls) != 334) {
+        ESP_LOGE(TAG, "SMTP username authentication failed");
+        goto cleanup;
+    }
+
+    // Send Gmail App Password
+    if (smtp_send_base64(tls, GMAIL_APP_PASSWORD) != 0) {
+        goto cleanup;
+    }
+
+    if (smtp_read_response(tls) != 235) {
+        ESP_LOGE(TAG, "SMTP password authentication failed");
+        goto cleanup;
+    }
+
+    // Sender address
+    char command[256];
+
+    snprintf(
+        command,
+        sizeof(command),
+        "MAIL FROM:<%s>",
+        GMAIL_SENDER_EMAIL
+    );
+
+    if (smtp_command(tls, command, 250) != 0) {
+        goto cleanup;
+    }
+
+    // Recipient address
+    snprintf(
+        command,
+        sizeof(command),
+        "RCPT TO:<%s>",
+        GMAIL_RECIPIENT_EMAIL
+    );
+
+    if (smtp_command(tls, command, 250) != 0) {
+        goto cleanup;
+    }
+
+    // Begin email content
+    if (smtp_command(tls, "DATA", 354) != 0) {
+        goto cleanup;
+    }
+
+    char email[1200];
+
+    int email_length = snprintf(
+        email,
+        sizeof(email),
+        "From: Smart Plant Monitor <%s>\r\n"
+        "To: <%s>\r\n"
+        "Subject: Smart Plant Monitoring Alert\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: text/plain; charset=UTF-8\r\n"
+        "\r\n"
+        "%s\r\n"
+        "\r\n.\r\n",
+        GMAIL_SENDER_EMAIL,
+        GMAIL_RECIPIENT_EMAIL,
+        message
+    );
+
+    if (email_length < 0 || email_length >= sizeof(email)) {
+        ESP_LOGE(TAG, "Email message is too long");
+        goto cleanup;
+    }
+
+    if (smtp_write_all(tls, email) != 0) {
+        goto cleanup;
+    }
+
+    if (smtp_read_response(tls) != 250) {
+        ESP_LOGE(TAG, "Gmail rejected the email");
+        goto cleanup;
+    }
+
+    ESP_LOGI(TAG, "Gmail notification sent successfully");
+    success = true;
+
+    // End SMTP session
+    smtp_command(tls, "QUIT", 221);
+
+cleanup:
+    esp_tls_conn_destroy(tls);
+    return success;
 }
 
 static void wifi_event_handler(
@@ -398,6 +694,7 @@ static void monitoring_task(void *pvParameters)
     }
 }
 
+
 /* Notification Task */
 static void notification_task(void *pvParameters)
 {
@@ -415,7 +712,7 @@ static void notification_task(void *pvParameters)
 
         ESP_LOGW(TAG, "ALERT: Soil is DRY! Water your plant.");
 
-        /* Wait until Wi-Fi is connected before sending the alert. */
+        /* Wait until Wi-Fi is connected before sending alerts. */
         EventBits_t wifi_bits = xEventGroupWaitBits(
             plant_event_group,
             WIFI_CONNECTED_BIT,
@@ -425,13 +722,24 @@ static void notification_task(void *pvParameters)
         );
 
         if ((wifi_bits & WIFI_CONNECTED_BIT) != 0) {
-            send_telegram_message(
-                "ALERT: Soil is DRY! Water your plant."
-            );
+
+            const char *alert_message =
+                "ALERT: Soil is DRY! Water your plant.";
+
+            /* Send Telegram notification. */
+            send_telegram_message(alert_message);
+
+            /* Send Gmail notification. */
+            if (send_gmail_notification(alert_message)) {
+                ESP_LOGI(TAG, "Gmail alert delivered successfully.");
+            } else {
+                ESP_LOGE(TAG, "Gmail alert failed.");
+            }
+
         } else {
             ESP_LOGW(
                 TAG,
-                "Telegram alert not sent: Wi-Fi is unavailable."
+                "Notifications not sent: Wi-Fi is unavailable."
             );
         }
 
@@ -448,6 +756,8 @@ static void notification_task(void *pvParameters)
     }
 }
 
+ 
+/* Main Application */
 void app_main(void)
 {
     /* Initialize ADC. */
