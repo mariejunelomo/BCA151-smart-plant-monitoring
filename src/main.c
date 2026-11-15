@@ -47,7 +47,7 @@ static const char *TAG = "plant";
 #define MAX_SEND_ATTEMPTS 3
 #define SEND_RETRY_DELAY_MS 10000
 #define PLANT_ID "PlantMonitor-01"
-#define DHT_GPIO GPIO_NUM_15
+#define DHT_GPIO GPIO_NUM_13
 #define DHT_READ_EVERY_N_CYCLES 5   /* 5 x 1 s = one DHT11 read every 5 s */
 
 typedef struct {
