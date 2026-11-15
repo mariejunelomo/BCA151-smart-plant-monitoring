@@ -5,6 +5,8 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
+#include <sys/time.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -19,6 +21,7 @@
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_netif.h"
+#include "esp_netif_sntp.h"
 #include "esp_http_client.h"
 #include "esp_crt_bundle.h"
 #include "esp_tls.h"
@@ -64,6 +67,7 @@ static QueueHandle_t sensor_queue;
 static EventGroupHandle_t plant_event_group;
 
 static int wifi_retry_count = 0;
+static bool sntp_started = false;
 
 /* Latest ADC value, written by monitoring_task, read by notification_task. */
 static volatile int latest_soil_adc = 0;
@@ -513,6 +517,12 @@ cleanup:
     return success;
 }
 
+/* Called by SNTP each time the clock is synchronized. */
+static void time_sync_cb(struct timeval *tv)
+{
+    ESP_LOGI(TAG, "Time synchronized with NTP server");
+}
+
 static void wifi_event_handler(
     void *arg,
     esp_event_base_t event_base,
@@ -562,6 +572,20 @@ static void wifi_event_handler(
             plant_event_group,
             WIFI_CONNECTED_BIT
         );
+
+        /* Start time synchronization once, after the first IP address. */
+        if (!sntp_started) {
+            esp_sntp_config_t sntp_config =
+                ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
+            sntp_config.sync_cb = time_sync_cb;
+
+            if (esp_netif_sntp_init(&sntp_config) == ESP_OK) {
+                sntp_started = true;
+                ESP_LOGI(TAG, "SNTP started");
+            } else {
+                ESP_LOGW(TAG, "SNTP start failed");
+            }
+        }
     }
 }
 
@@ -764,6 +788,21 @@ static void monitoring_task(void *pvParameters)
     }
 }
 
+/* Current local time (UTC+8) for messages, or a notice if not synced. */
+static void format_timestamp(char *buffer, size_t size)
+{
+    time_t now = time(NULL);
+
+    if (now < 1700000000) {   /* clock still near 1970: not synced yet */
+        snprintf(buffer, size, "time not synced");
+        return;
+    }
+
+    struct tm local_time;
+    localtime_r(&now, &local_time);
+    strftime(buffer, size, "%Y-%m-%d %H:%M:%S", &local_time);
+}
+
 /* Describe the latest DHT11 reading for use in messages. */
 static void format_environment(char *buffer, size_t size)
 {
@@ -832,6 +871,7 @@ static void notification_task(void *pvParameters)
     bool delivered_this_episode = false;
     char message[220];
     char environment[48];
+    char timestamp[32];
 
     ESP_LOGI(TAG, "Notification task started");
 
@@ -875,16 +915,18 @@ static void notification_task(void *pvParameters)
 
             } else {
                 format_environment(environment, sizeof(environment));
+                format_timestamp(timestamp, sizeof(timestamp));
 
                 snprintf(
                     message,
                     sizeof(message),
-                    "[%s] ALERT: Soil is DRY (ADC %d). Air: %s. "
+                    "[%s] ALERT: Soil is DRY (ADC %d). Air: %s. Time: %s (UTC+8). "
                     "Reason: %d consecutive readings above %d. "
                     "Water your plant.",
                     PLANT_ID,
                     latest_soil_adc,
                     environment,
+                    timestamp,
                     CONFIRM_READINGS,
                     SOIL_DRY_THRESHOLD
                 );
@@ -927,15 +969,17 @@ static void notification_task(void *pvParameters)
                  WIFI_CONNECTED_BIT) != 0) {
 
                 format_environment(environment, sizeof(environment));
+                format_timestamp(timestamp, sizeof(timestamp));
 
                 snprintf(
                     message,
                     sizeof(message),
-                    "[%s] RECOVERY: Soil is no longer DRY (ADC %d). Air: %s. "
+                    "[%s] RECOVERY: Soil is no longer DRY (ADC %d). Air: %s. Time: %s (UTC+8). "
                     "Reason: %d consecutive readings at or below %d.",
                     PLANT_ID,
                     latest_soil_adc,
                     environment,
+                    timestamp,
                     CONFIRM_READINGS,
                     SOIL_DRY_THRESHOLD
                 );
@@ -977,6 +1021,10 @@ void app_main(void)
             &channel_config
         )
     );
+
+    /* Philippines time (UTC+8). */
+    setenv("TZ", "PST-8", 1);
+    tzset();
 
     /* Initialize DHT11 data pin. */
     ESP_ERROR_CHECK(dht11_init(DHT_GPIO));
