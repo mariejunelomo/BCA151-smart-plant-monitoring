@@ -1,5 +1,5 @@
 idf_component_register(
-    SRCS "main.c"
+    SRCS "main.c" "dht11.c"
     INCLUDE_DIRS "." "../include"
     REQUIRES
         esp_wifi
@@ -10,4 +10,7 @@ idf_component_register(
         esp_http_client
         esp-tls
         mbedtls
+        esp_driver_gpio
+        esp_timer
+        esp_rom
 )
