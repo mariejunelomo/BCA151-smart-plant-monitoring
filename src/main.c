@@ -788,6 +788,17 @@ static void monitoring_task(void *pvParameters)
     }
 }
 
+/* Wait up to timeout_ms for the clock to be set by SNTP. */
+static void wait_for_time_sync(int timeout_ms)
+{
+    int waited = 0;
+
+    while (time(NULL) < 1700000000 && waited < timeout_ms) {
+        vTaskDelay(pdMS_TO_TICKS(500));
+        waited += 500;
+    }
+}
+
 /* Current local time (UTC+8) for messages, or a notice if not synced. */
 static void format_timestamp(char *buffer, size_t size)
 {
@@ -915,6 +926,7 @@ static void notification_task(void *pvParameters)
 
             } else {
                 format_environment(environment, sizeof(environment));
+                wait_for_time_sync(15000);
                 format_timestamp(timestamp, sizeof(timestamp));
 
                 snprintf(
@@ -969,6 +981,7 @@ static void notification_task(void *pvParameters)
                  WIFI_CONNECTED_BIT) != 0) {
 
                 format_environment(environment, sizeof(environment));
+                wait_for_time_sync(15000);
                 format_timestamp(timestamp, sizeof(timestamp));
 
                 snprintf(
