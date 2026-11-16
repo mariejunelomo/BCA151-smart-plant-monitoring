@@ -43,7 +43,7 @@ static const char *TAG = "plant";
 #define WIFI_CONNECTED_BIT BIT2
 #define SOIL_DRY_THRESHOLD 3000
 #define CONFIRM_READINGS 3
-#define ALERT_COOLDOWN_MS 60000    /* TESTING: 60 s. Final value: 900000 (15 min)  */
+#define ALERT_COOLDOWN_MS 900000   /* FINAL: 15 minutes */
 #define MAX_SEND_ATTEMPTS 3
 #define SEND_RETRY_DELAY_MS 10000
 #define PLANT_ID "PlantMonitor-01"
