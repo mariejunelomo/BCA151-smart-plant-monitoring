@@ -23,3 +23,6 @@ include/telegram_credentials.h
 
 # Gmail credentials
 include/gmail_credentials.h
+
+# X (Twitter) credentials
+include/x_credentials.h
