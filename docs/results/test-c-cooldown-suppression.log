@@ -1,0 +1,289 @@
+﻿I (168572) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+W (168932) plant: Wi-Fi disconnected. Reconnecting (attempt 21)...
+I (169572) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (170592) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+W (171342) plant: Wi-Fi disconnected. Reconnecting (attempt 22)...
+I (171572) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (172572) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (173572) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+W (173752) plant: Wi-Fi disconnected. Reconnecting (attempt 23)...
+I (174572) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (175592) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+W (176162) plant: Wi-Fi disconnected. Reconnecting (attempt 24)...
+I (176572) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (177572) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (178572) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+W (178582) plant: Wi-Fi disconnected. Reconnecting (attempt 25)...
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0x2b (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x14f0
+load:0x403c8700,len:0xde4
+load:0x403cb700,len:0x2f58
+entry 0x403c88fc
+I (24) boot: ESP-IDF 6.1.0 2nd stage bootloader
+I (25) boot: compile time Nov 15 2026 19:14:23
+I (25) boot: Multicore bootloader
+I (25) boot: chip revision: v0.2
+I (28) boot: efuse block revision: v1.4
+I (31) boot.esp32s3: Boot SPI Speed : 80MHz
+I (35) boot.esp32s3: SPI Mode       : DIO
+I (39) boot.esp32s3: SPI Flash Size : 16MB
+I (43) boot: Enabling RNG early entropy source...
+I (47) boot: Partition Table:
+I (50) boot: ## Label            Usage          Type ST Offset   Length
+I (56) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (63) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (69) boot:  2 factory          factory app      00 00 00010000 00177000
+I (76) boot: End of partition table
+I (79) esp_image: segment 0: paddr=00010020 vaddr=3c0b0020 size=33960h (211296) map
+I (125) esp_image: segment 1: paddr=00043988 vaddr=3fc97c00 size=0522ch ( 21036) load
+I (130) esp_image: segment 2: paddr=00048bbc vaddr=40374000 size=0745ch ( 29788) load
+I (137) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=aa450h (697424) map
+I (264) esp_image: segment 4: paddr=000fa478 vaddr=4037b45c size=0c730h ( 50992) load
+I (276) esp_image: segment 5: paddr=00106bb0 vaddr=50000000 size=00024h (    36) load
+I (285) boot: Loaded app from partition at offset 0x10000
+I (285) boot: Disabling RNG early entropy source...
+I (296) cpu_start: Multicore app
+I (304) cpu_start: GPIO 44 and 43 are used as console UART I/O pins
+I (305) cpu_start: Pro cpu start user code
+I (305) cpu_start: cpu freq: 160000000 Hz
+I (306) app_init: Application information:
+I (310) app_init: Project name:     smart-plant-monitoring
+I (315) app_init: App version:      1e06e4d-dirty
+I (320) app_init: Compile time:     Nov 15 2026 19:22:20
+I (325) app_init: ELF file SHA256:  d8510378f...
+I (329) app_init: ESP-IDF:          6.1.0
+I (333) efuse_init: Min chip rev:     v0.0
+I (337) efuse_init: Max chip rev:     v0.99 
+I (341) efuse_init: Chip rev:         v0.2
+I (345) heap_init: Initializing. RAM available for dynamic allocation:
+I (351) heap_init: At 3FCA16A0 len 00048070 (288 KiB): RAM
+I (356) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (361) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (366) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM
+I (373) spi_flash: detected chip: boya
+I (375) spi_flash: flash io: dio
+I (379) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (385) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (392) main_task: Started on CPU0
+I (422) main_task: Calling app_main()
+I (442) pp: pp rom version: e7ae62f
+I (442) net80211: net80211 rom version: e7ae62f
+I (452) wifi:wifi driver task: 3fceed64, prio:23, stack:6656, core=0
+I (462) wifi:wifi firmware version: e12a754
+I (462) wifi:wifi certification version: v7.0
+I (462) wifi:config NVS flash: enabled
+I (462) wifi:config nano formatting: disabled
+I (462) wifi:Init data frame dynamic rx buffer num: 32
+I (472) wifi:Init static rx mgmt buffer num: 5
+I (472) wifi:Init management short buffer num: 32
+I (472) wifi:Init dynamic tx buffer num: 32
+I (482) wifi:Init static tx FG buffer num: 2
+I (482) wifi:Init static rx buffer size: 1600
+I (492) wifi:Init static rx buffer num: 10
+I (492) wifi:Init dynamic rx buffer num: 32
+I (502) wifi_init: rx ba win: 6
+I (502) wifi_init: accept mbox: 6
+I (502) wifi_init: tcpip mbox: 32
+I (502) wifi_init: udp mbox: 6
+I (512) wifi_init: tcp mbox: 6
+I (512) wifi_init: tcp tx win: 5760
+I (512) wifi_init: tcp rx win: 5760
+I (522) wifi_init: tcp mss: 1440
+I (522) wifi_init: WiFi IRAM OP enabled
+I (522) wifi_init: WiFi RX IRAM OP enabled
+I (532) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+I (572) phy_init: Saving new calibration data due to checksum failure or outdated calibration data, mode(0)
+I (612) wifi:mode : sta ([MAC-REDACTED])
+I (612) wifi:enable tsf
+I (612) plant: Wi-Fi initialization completed.
+I (612) plant: Wi-Fi started. Connecting...
+I (622) plant: Sensor task started
+I (622) plant: Monitoring task started
+I (622) plant: Notification task started
+I (632) plant: Smart Plant Monitoring System started
+I (632) main_task: Returned from app_main()
+I (642) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (1622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (2622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (2622) plant: Confirmed state change: DRY
+W (2622) plant: ALERT: Soil is DRY! Water your plant.
+W (3032) plant: Wi-Fi disconnected. Reconnecting (attempt 1)...
+I (3622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (4622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+W (5442) plant: Wi-Fi disconnected. Reconnecting (attempt 2)...
+I (5642) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (6622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (7622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+W (7852) plant: Wi-Fi disconnected. Reconnecting (attempt 3)...
+I (8622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (9622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+W (10272) plant: Wi-Fi disconnected. Reconnecting (attempt 4)...
+I (10642) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (11622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (12622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+W (12682) plant: Wi-Fi disconnected. Reconnecting (attempt 5)...
+I (13622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (14622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+W (15092) plant: Wi-Fi disconnected. Reconnecting (attempt 6)...
+I (15642) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (16622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+W (17512) plant: Wi-Fi disconnected. Reconnecting (attempt 7)...
+I (17622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (18622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (19622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+W (19922) plant: Wi-Fi disconnected. Reconnecting (attempt 8)...
+I (19932) wifi:new:<6,0>, old:<1,0>, ap:<255,255>, sta:<6,0>, prof:1, snd_ch_cfg:0x0
+I (19932) wifi:state: init -> auth (0xb0)
+I (19942) wifi:state: auth -> assoc (0x0)
+I (19952) wifi:state: assoc -> run (0x10)
+I (20022) wifi:connected with [WIFI-REDACTED], aid = 1, channel 6, BW20, bssid = [MAC-REDACTED]
+I (20022) wifi:security: WPA2-PSK, phy: bgn, rssi: -24, cipher(pairwise:0x3, group:0x3), pmf:0
+I (20022) wifi:pm start, type: 1
+
+I (20022) wifi:dp: 1, bi: 102400, li: 3, scale listen interval from 307200 us to 307200 us
+I (20032) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+I (20112) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+I (20642) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (21232) esp_netif_handlers: sta ip: [IP-REDACTED], mask: [IP-REDACTED], gw: [IP-REDACTED]
+I (21232) plant: Connected! IP address: [IP-REDACTED]
+I (21232) plant: SNTP started
+I (21622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (22122) wifi:<ba-add>idx:0 (ifx:0, [MAC-REDACTED]), tid:0, ssn:2, winSize:64
+I (22622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (23462) plant: Time synchronized with NTP server
+I (23622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (23732) plant: Sending Telegram notification...
+I (24622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (25642) plant: Soil moisture ADC: 3731 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (26082) esp-x509-crt-bundle: Certificate validated
+I (26622) plant: Soil moisture ADC: 3143 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (27622) plant: Soil moisture ADC: 2471 | Status: NORMAL | Temp: 23 C | Humidity: 53 %
+I (28212) plant: Telegram notification sent successfully
+I (28212) plant: Connecting to Gmail SMTP...
+I (28622) plant: Soil moisture ADC: 2270 | Status: NORMAL | Temp: 23 C | Humidity: 53 %
+I (29622) plant: Soil moisture ADC: 2269 | Status: NORMAL | Temp: 23 C | Humidity: 53 %
+I (29622) plant: Confirmed state change: NOT DRY
+I (30642) plant: Soil moisture ADC: 2519 | Status: NORMAL | Temp: 23 C | Humidity: 53 %
+I (31372) plant: SMTP: 220 smtp.gmail.com ESMTP d9443c01a7336-2ee0f8dc955sm31254415ad.62 - gsmtp
+I (31622) plant: Soil moisture ADC: 3045 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (31692) plant: SMTP: 250-smtp.gmail.com at your service, [[IP-REDACTED]]
+I (31692) plant: SMTP: 250-SIZE 35882577
+I (31692) plant: SMTP: 250-8BITMIME
+I (31692) plant: SMTP: 250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+I (31702) plant: SMTP: 250-ENHANCEDSTATUSCODES
+I (31702) plant: SMTP: 250-PIPELINING
+I (31702) plant: SMTP: 250-CHUNKING
+I (31712) plant: SMTP: 250-SMTPUTF8
+I (31712) plant: SMTP: 250 LIMITS MAILMAX=1000 RCPTMAX=100
+I (32302) plant: SMTP: 334 VXNlcm5hbWU6
+I (32622) plant: Soil moisture ADC: 3547 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (32812) plant: SMTP: 334 UGFzc3dvcmQ6
+I (33332) plant: SMTP: 235 2.7.0 Accepted
+I (33622) plant: Soil moisture ADC: 3999 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (33622) plant: Confirmed state change: DRY
+I (33632) plant: SMTP: 250 2.1.0 OK d9443c01a7336-2ee0f8dc955sm31254415ad.62 - gsmtp
+I (33952) plant: SMTP: 250 2.1.5 OK d9443c01a7336-2ee0f8dc955sm31254415ad.62 - gsmtp
+I (34462) plant: SMTP: 354 Go ahead d9443c01a7336-2ee0f8dc955sm31254415ad.62 - gsmtp
+I (34622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (35372) plant: SMTP: 250 2.0.0 OK  1794804931 d9443c01a7336-2ee0f8dc955sm31254415ad.62 - gsmtp
+I (35372) plant: Gmail notification sent successfully
+I (35642) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (35902) plant: SMTP: 221 2.0.0 closing connection d9443c01a7336-2ee0f8dc955sm31254415ad.62 - gsmtp
+I (35912) plant: Message delivered (Telegram: OK, Gmail: OK)
+I (36622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (37622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (38622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (39622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (40642) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (41622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (42622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (43622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (44622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (45642) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (46622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (47622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (48622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (49622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (50642) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (51622) plant: Soil moisture ADC: 4095 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (52622) plant: Soil moisture ADC: 4025 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (53622) plant: Soil moisture ADC: 3117 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (54622) plant: Soil moisture ADC: 2411 | Status: NORMAL | Temp: 23 C | Humidity: 53 %
+I (55642) plant: Soil moisture ADC: 2195 | Status: NORMAL | Temp: 23 C | Humidity: 53 %
+I (56622) plant: Soil moisture ADC: 2103 | Status: NORMAL | Temp: 23 C | Humidity: 53 %
+I (56622) plant: Confirmed state change: NOT DRY
+I (56622) plant: Soil condition is no longer DRY.
+I (56622) plant: Sending Telegram notification...
+I (57622) plant: Soil moisture ADC: 2103 | Status: NORMAL | Temp: 23 C | Humidity: 53 %
+I (58082) esp-x509-crt-bundle: Certificate validated
+I (58622) plant: Soil moisture ADC: 2211 | Status: NORMAL | Temp: 23 C | Humidity: 53 %
+I (59622) plant: Soil moisture ADC: 2823 | Status: NORMAL | Temp: 23 C | Humidity: 53 %
+I (60642) plant: Soil moisture ADC: 3291 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (61622) plant: Soil moisture ADC: 3550 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (62622) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (62622) plant: Confirmed state change: DRY
+I (63622) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (64622) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (65642) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (66622) plant: Soil moisture ADC: 3599 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (67622) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (68142) plant: Telegram notification sent successfully
+I (68152) plant: Connecting to Gmail SMTP...
+I (68622) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (69622) plant: Soil moisture ADC: 3604 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (70642) plant: Soil moisture ADC: 3604 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (71552) plant: SMTP: 220 smtp.gmail.com ESMTP 41be03b00d2f7-cddc18adce4sm3537367a12.23 - gsmtp
+I (71622) plant: Soil moisture ADC: 3604 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (72042) plant: SMTP: 250-smtp.gmail.com at your service, [[IP-REDACTED]]
+I (72042) plant: SMTP: 250-SIZE 35882577
+I (72042) plant: SMTP: 250-8BITMIME
+I (72042) plant: SMTP: 250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+I (72052) plant: SMTP: 250-ENHANCEDSTATUSCODES
+I (72062) plant: SMTP: 250-PIPELINING
+I (72062) plant: SMTP: 250-CHUNKING
+I (72062) plant: SMTP: 250-SMTPUTF8
+I (72072) plant: SMTP: 250 LIMITS MAILMAX=1000 RCPTMAX=100
+I (72592) plant: SMTP: 334 VXNlcm5hbWU6
+I (72622) plant: Soil moisture ADC: 3595 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (73262) plant: SMTP: 334 UGFzc3dvcmQ6
+I (73622) plant: Soil moisture ADC: 3596 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (74422) plant: SMTP: 235 2.7.0 Accepted
+I (74622) plant: Soil moisture ADC: 3604 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (74982) plant: SMTP: 250 2.1.0 OK 41be03b00d2f7-cddc18adce4sm3537367a12.23 - gsmtp
+I (75512) plant: SMTP: 250 2.1.5 OK 41be03b00d2f7-cddc18adce4sm3537367a12.23 - gsmtp
+I (75642) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (76032) plant: SMTP: 354 Go ahead 41be03b00d2f7-cddc18adce4sm3537367a12.23 - gsmtp
+I (76622) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (77622) plant: Soil moisture ADC: 3601 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (78622) plant: Soil moisture ADC: 3605 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (79622) plant: Soil moisture ADC: 3605 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (80642) plant: Soil moisture ADC: 3605 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (80972) plant: SMTP: 250 2.0.0 OK  1794804976 41be03b00d2f7-cddc18adce4sm3537367a12.23 - gsmtp
+I (80972) plant: Gmail notification sent successfully
+I (81622) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (81782) plant: SMTP: 221 2.0.0 closing connection 41be03b00d2f7-cddc18adce4sm3537367a12.23 - gsmtp
+I (81782) plant: Message delivered (Telegram: OK, Gmail: OK)
+W (81782) plant: ALERT: Soil is DRY! Water your plant.
+W (81792) plant: Alert suppressed: cool-down active (14 s left)
+I (82622) plant: Soil moisture ADC: 3605 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (83622) plant: Soil moisture ADC: 3604 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (84622) plant: Soil moisture ADC: 3598 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (85642) plant: Soil moisture ADC: 3604 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (86622) plant: Soil moisture ADC: 3605 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (87622) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (88622) plant: Soil moisture ADC: 3601 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (89622) plant: Soil moisture ADC: 3601 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (90642) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (91622) plant: Soil moisture ADC: 3602 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (92622) plant: Soil moisture ADC: 3601 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (93622) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (94622) plant: Soil moisture ADC: 3604 | Status: DRY | Temp: 23 C | Humidity: 52 %
+I (95642) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (96622) plant: Soil moisture ADC: 3605 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (97622) plant: Soil moisture ADC: 3604 | Status: DRY | Temp: 23 C | Humidity: 53 %
+I (98622) plant: Soil moisture ADC: 3603 | Status: DRY | Temp: 23 C | Humidity: 53 %
+
