@@ -23,3 +23,6 @@ include/telegram_credentials.h
 
 # Gmail credentials
 include/gmail_credentials.h
+
+# ntfy credentials
+include/ntfy_credentials.h
