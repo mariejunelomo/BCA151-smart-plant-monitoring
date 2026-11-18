@@ -876,6 +876,7 @@ static void wifi_init_sta(void)
     ESP_LOGI(TAG, "Wi-Fi initialization completed.");
 }
 
+
 /* Sensor Task */
 static void sensor_task(void *pvParameters)
 {
@@ -886,34 +887,45 @@ static void sensor_task(void *pvParameters)
     ESP_LOGI(TAG, "Sensor task started");
 
     while (1) {
-        ESP_ERROR_CHECK(adc_oneshot_read(
+        esp_err_t adc_err = adc_oneshot_read(
             adc_handle,
             POT_ADC_CHANNEL,
             &sensor_data.soil_moisture
-        ));
+        );
 
-        /* The DHT11 is slow, so read it only every few cycles. */
-        if (cycle % DHT_READ_EVERY_N_CYCLES == 0) {
-            dht11_reading_t dht;
-            esp_err_t err = dht11_read(&dht);
+        if (adc_err == ESP_OK) {
 
-            if (err == ESP_OK) {
-                sensor_data.temperature_c = dht.temperature_c;
-                sensor_data.humidity_pct = dht.humidity_pct;
-                sensor_data.dht_valid = true;
-            } else {
-                sensor_data.dht_valid = false;
-                ESP_LOGW(
-                    TAG,
-                    "DHT11 read failed: %s",
-                    esp_err_to_name(err)
-                );
+            /* The DHT11 is slow, so read it only every few cycles. */
+            if (cycle % DHT_READ_EVERY_N_CYCLES == 0) {
+                dht11_reading_t dht;
+                esp_err_t err = dht11_read(&dht);
+
+                if (err == ESP_OK) {
+                    sensor_data.temperature_c = dht.temperature_c;
+                    sensor_data.humidity_pct = dht.humidity_pct;
+                    sensor_data.dht_valid = true;
+                } else {
+                    sensor_data.dht_valid = false;
+                    ESP_LOGW(
+                        TAG,
+                        "DHT11 read failed: %s",
+                        esp_err_to_name(err)
+                    );
+                }
             }
+
+            /* Send only a successfully acquired soil reading. */
+            xQueueSend(sensor_queue, &sensor_data, portMAX_DELAY);
+
+        } else {
+            ESP_LOGW(
+                TAG,
+                "Soil ADC read failed: %s. Skipping this sample.",
+                esp_err_to_name(adc_err)
+            );
         }
 
         cycle++;
-
-        xQueueSend(sensor_queue, &sensor_data, portMAX_DELAY);
 
         vTaskDelayUntil(
             &last_wake_time,
