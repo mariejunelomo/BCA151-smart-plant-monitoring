@@ -31,6 +31,7 @@
 #include "gmail_credentials.h"
 #include "gmail_root_ca.h"
 #include "wifi_credentials.h"
+#include "ntfy_credentials.h"
 #include "dht11.h"
 
 static const char *TAG = "plant";
