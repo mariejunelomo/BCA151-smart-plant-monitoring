@@ -910,33 +910,47 @@ static void format_environment(char *buffer, size_t size)
     }
 }
 
-/* Send one message to Telegram and Gmail, retrying if both fail.
- * must_stay_set: event bits that must still be set after each retry delay,
- * otherwise the retry is cancelled. Returns true if at least one channel
- * delivered the message. */
+
+/* Send one message to Telegram, Gmail, and ntfy.
+ * Each successful channel is skipped during subsequent retries.
+ * must_stay_set: event bits that must remain set after each retry delay.
+ * Returns true if at least one channel delivered the message. */
 static bool deliver_message(const char *message, EventBits_t must_stay_set)
 {
+    bool telegram_ok = false;
+    bool gmail_ok = false;
+    bool ntfy_ok = false;
+
     for (int attempt = 1; attempt <= MAX_SEND_ATTEMPTS; attempt++) {
 
-        bool telegram_ok = send_telegram_message(message);
-        bool gmail_ok = send_gmail_notification(message);
+        /* Retry only channels that have not delivered successfully. */
+        if (!telegram_ok) {
+            telegram_ok = send_telegram_message(message);
+        }
 
-        if (telegram_ok || gmail_ok) {
-            ESP_LOGI(
-                TAG,
-                "Message delivered (Telegram: %s, Gmail: %s)",
-                telegram_ok ? "OK" : "FAILED",
-                gmail_ok ? "OK" : "FAILED"
-            );
-            return true;
+        if (!gmail_ok) {
+            gmail_ok = send_gmail_notification(message);
+        }
+
+        if (!ntfy_ok) {
+            ntfy_ok = send_ntfy_notification(message);
+        }
+
+        /* Stop early if every channel succeeded. */
+        if (telegram_ok && gmail_ok && ntfy_ok) {
+            break;
         }
 
         if (attempt < MAX_SEND_ATTEMPTS) {
             ESP_LOGW(
                 TAG,
-                "All channels failed (attempt %d of %d). Retrying in %d s...",
+                "Pending channels (attempt %d of %d). "
+                "Telegram: %s, Gmail: %s, ntfy: %s. Retrying in %d s...",
                 attempt,
                 MAX_SEND_ATTEMPTS,
+                telegram_ok ? "OK" : "PENDING",
+                gmail_ok ? "OK" : "PENDING",
+                ntfy_ok ? "OK" : "PENDING",
                 SEND_RETRY_DELAY_MS / 1000
             );
 
@@ -945,13 +959,30 @@ static bool deliver_message(const char *message, EventBits_t must_stay_set)
             EventBits_t bits = xEventGroupGetBits(plant_event_group);
 
             if ((bits & must_stay_set) != must_stay_set) {
-                ESP_LOGW(TAG, "Retry cancelled: condition changed or Wi-Fi lost.");
-                return false;
+                ESP_LOGW(
+                    TAG,
+                    "Retry cancelled: condition changed or Wi-Fi lost."
+                );
+                break;
             }
         }
     }
 
-    return false;
+    bool delivered = telegram_ok || gmail_ok || ntfy_ok;
+
+    ESP_LOGI(
+        TAG,
+        "Message delivery result (Telegram: %s, Gmail: %s, ntfy: %s)",
+        telegram_ok ? "OK" : "FAILED",
+        gmail_ok ? "OK" : "FAILED",
+        ntfy_ok ? "OK" : "FAILED"
+    );
+
+    if (!delivered) {
+        ESP_LOGE(TAG, "Message was not delivered by any channel.");
+    }
+
+    return delivered;
 }
 
 /* Notification Task */
