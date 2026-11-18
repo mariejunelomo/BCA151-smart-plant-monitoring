@@ -231,6 +231,86 @@ static bool send_telegram_message(const char *message)
     return success;
 }
 
+
+/* Send one notification to the configured ntfy topic over HTTPS. */
+static bool send_ntfy_notification(const char *message)
+{
+    if (message == NULL) {
+        ESP_LOGE(TAG, "ntfy message is NULL");
+        return false;
+    }
+
+    char url[256];
+
+    int url_length = snprintf(
+        url,
+        sizeof(url),
+        "https://ntfy.sh/%s",
+        NTFY_TOPIC
+    );
+
+    if (url_length < 0 || url_length >= sizeof(url)) {
+        ESP_LOGE(TAG, "ntfy URL is invalid or too long");
+        return false;
+    }
+
+    esp_http_client_config_t config = {
+        .url = url,
+        .crt_bundle_attach = esp_crt_bundle_attach,
+        .timeout_ms = 15000,
+    };
+
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+
+    if (client == NULL) {
+        ESP_LOGE(TAG, "Failed to initialize ntfy HTTP client");
+        return false;
+    }
+
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+
+    esp_http_client_set_header(
+        client,
+        "Content-Type",
+        "text/plain; charset=utf-8"
+    );
+
+    esp_http_client_set_post_field(
+        client,
+        message,
+        strlen(message)
+    );
+
+    ESP_LOGI(TAG, "Sending ntfy notification...");
+
+    bool success = false;
+    esp_err_t err = esp_http_client_perform(client);
+
+    if (err == ESP_OK) {
+        int status_code = esp_http_client_get_status_code(client);
+
+        if (status_code >= 200 && status_code < 300) {
+            ESP_LOGI(TAG, "ntfy notification sent successfully");
+            success = true;
+        } else {
+            ESP_LOGE(
+                TAG,
+                "ntfy send failed. HTTP status: %d",
+                status_code
+            );
+        }
+    } else {
+        ESP_LOGE(
+            TAG,
+            "ntfy request failed: %s",
+            esp_err_to_name(err)
+        );
+    }
+
+    esp_http_client_cleanup(client);
+    return success;
+}
+
 // ==================== GMAIL SMTP FUNCTIONS ====================
 
 #define SMTP_HOST "smtp.gmail.com"
