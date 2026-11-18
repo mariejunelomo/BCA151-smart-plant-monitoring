@@ -32,6 +32,7 @@
 #include "gmail_root_ca.h"
 #include "wifi_credentials.h"
 #include "ntfy_credentials.h"
+#include "discord_credentials.h"
 #include "dht11.h"
 
 static const char *TAG = "plant";
@@ -303,6 +304,148 @@ static bool send_ntfy_notification(const char *message)
         ESP_LOGE(
             TAG,
             "ntfy request failed: %s",
+            esp_err_to_name(err)
+        );
+    }
+
+    esp_http_client_cleanup(client);
+    return success;
+}
+
+
+/* Send one notification to Discord through the configured webhook. */
+static bool send_discord_notification(const char *message)
+{
+    if (message == NULL) {
+        ESP_LOGE(TAG, "Discord message is NULL");
+        return false;
+    }
+
+    /* Convert the message into a safely escaped JSON payload. */
+    char json_payload[2048];
+    size_t used = 0;
+
+    const char *prefix = "{\"content\":\"";
+    size_t prefix_length = strlen(prefix);
+
+    memcpy(json_payload, prefix, prefix_length);
+    used = prefix_length;
+
+    for (const unsigned char *p = (const unsigned char *)message;
+         *p != '\0'; p++) {
+
+        char escaped[7];
+        size_t escaped_length = 0;
+
+        switch (*p) {
+            case '"':
+                memcpy(escaped, "\\\"", 2);
+                escaped_length = 2;
+                break;
+
+            case '\\':
+                memcpy(escaped, "\\\\", 2);
+                escaped_length = 2;
+                break;
+
+            case '\n':
+                memcpy(escaped, "\\n", 2);
+                escaped_length = 2;
+                break;
+
+            case '\r':
+                memcpy(escaped, "\\r", 2);
+                escaped_length = 2;
+                break;
+
+            case '\t':
+                memcpy(escaped, "\\t", 2);
+                escaped_length = 2;
+                break;
+
+            default:
+                if (*p < 0x20) {
+                    int length = snprintf(
+                        escaped,
+                        sizeof(escaped),
+                        "\\u%04x",
+                        *p
+                    );
+
+                    if (length < 0 || length >= sizeof(escaped)) {
+                        return false;
+                    }
+
+                    escaped_length = (size_t)length;
+                } else {
+                    escaped[0] = (char)*p;
+                    escaped_length = 1;
+                }
+                break;
+        }
+
+        if (used + escaped_length + 3 > sizeof(json_payload)) {
+            ESP_LOGE(TAG, "Discord message is too long");
+            return false;
+        }
+
+        memcpy(json_payload + used, escaped, escaped_length);
+        used += escaped_length;
+    }
+
+    memcpy(json_payload + used, "\"}", 2);
+    used += 2;
+    json_payload[used] = '\0';
+
+    esp_http_client_config_t config = {
+        .url = DISCORD_WEBHOOK_URL,
+        .crt_bundle_attach = esp_crt_bundle_attach,
+        .timeout_ms = 15000,
+    };
+
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+
+    if (client == NULL) {
+        ESP_LOGE(TAG, "Failed to initialize Discord HTTP client");
+        return false;
+    }
+
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+
+    esp_http_client_set_header(
+        client,
+        "Content-Type",
+        "application/json"
+    );
+
+    esp_http_client_set_post_field(
+        client,
+        json_payload,
+        (int)used
+    );
+
+    ESP_LOGI(TAG, "Sending Discord notification...");
+
+    bool success = false;
+    esp_err_t err = esp_http_client_perform(client);
+
+    if (err == ESP_OK) {
+        int status_code = esp_http_client_get_status_code(client);
+
+        if (status_code >= 200 && status_code < 300) {
+            ESP_LOGI(TAG, "Discord notification sent successfully");
+            success = true;
+        } else {
+            ESP_LOGE(
+                TAG,
+                "Discord send failed. HTTP status: %d",
+                status_code
+            );
+        }
+    } else {
+        ESP_LOGE(
+            TAG,
+            "Discord request failed: %s",
             esp_err_to_name(err)
         );
     }
@@ -911,15 +1054,17 @@ static void format_environment(char *buffer, size_t size)
 }
 
 
-/* Send one message to Telegram, Gmail, and ntfy.
+
+/* Send one message to Telegram, Gmail, ntfy, and Discord.
  * Each successful channel is skipped during subsequent retries.
- * must_stay_set: event bits that must remain set after each retry delay.
+ * must_stay_set: event bits that must remain set after each retry.
  * Returns true if at least one channel delivered the message. */
 static bool deliver_message(const char *message, EventBits_t must_stay_set)
 {
     bool telegram_ok = false;
     bool gmail_ok = false;
     bool ntfy_ok = false;
+    bool discord_ok = false;
 
     for (int attempt = 1; attempt <= MAX_SEND_ATTEMPTS; attempt++) {
 
@@ -936,8 +1081,12 @@ static bool deliver_message(const char *message, EventBits_t must_stay_set)
             ntfy_ok = send_ntfy_notification(message);
         }
 
+        if (!discord_ok) {
+            discord_ok = send_discord_notification(message);
+        }
+
         /* Stop early if every channel succeeded. */
-        if (telegram_ok && gmail_ok && ntfy_ok) {
+        if (telegram_ok && gmail_ok && ntfy_ok && discord_ok) {
             break;
         }
 
@@ -945,12 +1094,14 @@ static bool deliver_message(const char *message, EventBits_t must_stay_set)
             ESP_LOGW(
                 TAG,
                 "Pending channels (attempt %d of %d). "
-                "Telegram: %s, Gmail: %s, ntfy: %s. Retrying in %d s...",
+                "Telegram: %s, Gmail: %s, ntfy: %s, Discord: %s. "
+                "Retrying in %d s...",
                 attempt,
                 MAX_SEND_ATTEMPTS,
                 telegram_ok ? "OK" : "PENDING",
                 gmail_ok ? "OK" : "PENDING",
                 ntfy_ok ? "OK" : "PENDING",
+                discord_ok ? "OK" : "PENDING",
                 SEND_RETRY_DELAY_MS / 1000
             );
 
@@ -968,14 +1119,17 @@ static bool deliver_message(const char *message, EventBits_t must_stay_set)
         }
     }
 
-    bool delivered = telegram_ok || gmail_ok || ntfy_ok;
+    bool delivered =
+        telegram_ok || gmail_ok || ntfy_ok || discord_ok;
 
     ESP_LOGI(
         TAG,
-        "Message delivery result (Telegram: %s, Gmail: %s, ntfy: %s)",
+        "Message delivery result (Telegram: %s, Gmail: %s, "
+        "ntfy: %s, Discord: %s)",
         telegram_ok ? "OK" : "FAILED",
         gmail_ok ? "OK" : "FAILED",
-        ntfy_ok ? "OK" : "FAILED"
+        ntfy_ok ? "OK" : "FAILED",
+        discord_ok ? "OK" : "FAILED"
     );
 
     if (!delivered) {
@@ -984,7 +1138,6 @@ static bool deliver_message(const char *message, EventBits_t must_stay_set)
 
     return delivered;
 }
-
 /* Notification Task */
 static void notification_task(void *pvParameters)
 {

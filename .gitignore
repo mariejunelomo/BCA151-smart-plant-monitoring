@@ -26,3 +26,6 @@ include/gmail_credentials.h
 
 # ntfy credentials
 include/ntfy_credentials.h
+
+# Discord credentials
+include/discord_credentials.h
